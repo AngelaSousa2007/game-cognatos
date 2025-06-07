@@ -190,7 +190,7 @@
                     <!-- Avatars will be dynamically loaded here -->
                 </div>
             </div>
-            <button id="saveProfileButton" class="button-primary text-lg">
+            <button id="saveProfileButton" class="button-primary text-lg" disabled>
                 <i class="fas fa-user-check mr-2"></i> Salvar Perfil e Jogar
             </button>
             <button id="backToStartButton" class="button-secondary text-base mt-4">
@@ -255,63 +255,90 @@
     </div>
 
     <script type="module">
-        // Firebase CDN imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, limit, orderBy, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-        // --- Global Variables (Provided by Canvas Environment) ---
-        // __app_id: The current app ID provided in the canvas environment.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'false-cognate-quiz-default';
-        // __firebase_config: Firebase configuration provided in the canvas environment.
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        // __initial_auth_token: Firebase custom auth token.
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = typeof __firebase_config !== 'undefined'
+  ? JSON.parse(__firebase_config)
+  : {
+      apiKey: "AIzaSyB9JgVO32gRa2GibqBzs9D6TBMRdVCBZ2I",
+      authDomain: "game-cognatos.firebaseapp.com",
+      projectId: "game-cognatos",
+      storageBucket: "game-cognatos.firebasestorage.app",
+      messagingSenderId: "849934172862",
+      appId: "1:849934172862:web:e4bf2eb38d424b781e54ef",
+      measurementId: "G-P1262TLZ24"
+    };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+        // Import Firebase Firestore and Auth functions
+        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-auth.js";
+     
+
+        // __initial_auth_token: Firebase custom auth token. (Usado no ambiente Canvas, pode ser null na web)
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
 
         // --- Firebase Initialization ---
         let app;
-        let db;
-        let auth;
-        let userId = null;
-        let isAuthenticated = false; // Flag to track if auth is ready
+let db;
+let auth;
+let userId = null;
+let isAuthenticated = false; // Flag para autenticação
 
-        // Initialize Firebase and set up authentication listener
-        const initFirebase = async () => {
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+// Promise para indicar quando a autenticação Firebase estiver pronta
+let authReadyResolve;
+const authReadyPromise = new Promise(resolve => {
+    authReadyResolve = resolve;
+});
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthenticated = true;
-                        console.log("Firebase Auth Ready. User ID:", userId);
-                        // If user is authenticated, check for existing profile
-                        await loadProfile();
+// Inicializa Firebase e configura listener de autenticação
+const initFirebase = async () => {
+    try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                isAuthenticated = true;
+                console.log("Firebase Auth Ready. User ID:", userId);
+                // Resolve a promise assim que a autenticação estiver pronta
+                authReadyResolve(); 
+                // Se o usuário estiver autenticado, verifica o perfil existente
+                await loadProfile();
+            } else {
+                // Faz login anônimo se não houver token de autenticação inicial ou se o usuário não estiver logado
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
                     } else {
-                        // Sign in anonymously if no initial auth token or user is not signed in
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Error during anonymous sign-in or custom token sign-in:", error);
-                            showMessage("Erro de Autenticação", "Não foi possível autenticar o usuário. Tente novamente mais tarde.");
-                        }
+                        await signInAnonymously(auth);
                     }
-                    // Once authenticated (or anonymously signed in), load ranking if on ranking screen
-                    if (currentPage === 'ranking') {
-                        loadRanking();
-                    }
-                });
-            } catch (error) {
-                console.error("Error initializing Firebase:", error);
-                showMessage("Erro de Inicialização", "Não foi possível carregar o jogo. Verifique sua conexão ou tente novamente.");
+                } catch (error) {
+                    console.error("Erro durante o login anônimo ou login com token personalizado:", error);
+                    showMessage("Erro de Autenticação", "Não foi possível autenticar o usuário. Tente novamente mais tarde.");
+                    // Se o login anônimo falhar, ainda tenta resolver a promise
+                    authReadyResolve(); 
+                }
             }
-        };
+            // Uma vez autenticado (ou logado anonimamente), carrega o ranking se estiver na tela de ranking
+            if (currentPage === 'ranking') {
+                loadRanking();
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao inicializar Firebase:", error);
+    }
+};
 
         // --- Game Elements ---
         const startScreen = document.getElementById('startScreen');
@@ -329,7 +356,6 @@
 
         const questionText = document.getElementById('questionText');
         const optionsContainer = document.getElementById('optionsContainer');
-        // FIX: Removed the erroneous `document =` assignment here.
         const scoreDisplay = document.getElementById('scoreDisplay'); 
         const timerDisplay = document.getElementById('timerDisplay');
         const questionCountDisplay = document.getElementById('questionCountDisplay');
@@ -484,7 +510,14 @@
 
         // --- Profile Management ---
         async function loadProfile() {
-            if (!isAuthenticated || !userId) return; // Wait for authentication
+            // Ensure authentication is ready before trying to load profile
+            await authReadyPromise; 
+
+            if (!isAuthenticated || !userId) {
+                console.warn("Authentication not ready or user not authenticated. Cannot load profile.");
+                // We don't show an error message here, as it's expected for new users.
+                return;
+            }
 
             try {
                 const profileDocRef = doc(db, `/artifacts/${appId}/users/${userId}/profiles`, 'myProfile');
@@ -513,8 +546,12 @@
         }
 
         async function saveProfile() {
+            // Await authentication readiness before proceeding
+            await authReadyPromise; 
+
             if (!isAuthenticated || !userId) {
-                showMessage("Erro", "Usuário não autenticado. Tente novamente.");
+                showMessage("Erro", "Usuário não autenticado. Por favor, aguarde ou tente novamente.");
+                console.error("Attempted to save profile before user was authenticated.");
                 return;
             }
 
@@ -537,7 +574,8 @@
                 });
                 console.log("Profile saved successfully!");
                 showMessage("Sucesso!", "Perfil salvo com sucesso! Clique em OK para jogar.", startQuiz);
-            } catch (e) {
+            }
+            catch (e) {
                 console.error("Error saving profile:", e);
                 showMessage("Erro", "Não foi possível salvar seu perfil. Tente novamente.");
             }
@@ -662,6 +700,9 @@
 
         // --- Ranking System ---
         async function saveScore(finalScore) {
+            // Await authentication readiness before proceeding
+            await authReadyPromise; 
+
             if (!isAuthenticated || !userId) {
                 console.warn("User not authenticated, score not saved.");
                 return;
@@ -689,59 +730,62 @@
             rankingLoading.classList.remove('hidden');
             rankingList.querySelector('ul').innerHTML = ''; // Clear previous list
 
-            if (!isAuthenticated || !db) {
-                console.warn("Firebase not ready for ranking data.");
-                rankingLoading.textContent = "Aguardando autenticação para carregar o ranking...";
-                return;
-            }
+            // Await authentication readiness before trying to load ranking
+            authReadyPromise.then(() => {
+                if (!isAuthenticated || !db) {
+                    console.warn("Firebase not ready for ranking data.");
+                    rankingLoading.textContent = "Aguardando autenticação para carregar o ranking...";
+                    return;
+                }
 
-            try {
-                const rankingCollectionRef = collection(db, `/artifacts/${appId}/public/data/ranking`);
-                // Query for top scores, ordering by score descending, limit to top 10
-                const q = query(rankingCollectionRef, limit(10)); // Removed orderBy as per instructions
+                try {
+                    const rankingCollectionRef = collection(db, `/artifacts/${appId}/public/data/ranking`);
+                    // Query for top scores, ordering by score descending, limit to top 10
+                    const q = query(rankingCollectionRef, limit(10)); // Removed orderBy as per instructions
 
-                // Real-time listener for ranking updates
-                onSnapshot(q, (snapshot) => {
-                    rankingLoading.classList.add('hidden');
-                    const rankings = [];
-                    snapshot.forEach(doc => {
-                        rankings.push(doc.data());
-                    });
-
-                    // Sort locally if orderBy is not used in query
-                    rankings.sort((a, b) => b.score - a.score);
-
-                    rankingList.querySelector('ul').innerHTML = ''; // Clear before re-populating
-
-                    if (rankings.length === 0) {
-                        rankingList.querySelector('ul').innerHTML = '<li class="text-gray-600 text-center">Nenhuma pontuação registrada ainda.</li>';
-                    } else {
-                        rankings.forEach((player, index) => {
-                            const li = document.createElement('li');
-                            li.classList.add('flex', 'items-center', 'justify-between', 'p-4', 'bg-blue-50', 'rounded-lg', 'shadow-sm');
-                            li.innerHTML = `
-                                <div class="flex items-center">
-                                    <span class="text-xl font-bold text-blue-700 mr-4">${index + 1}.</span>
-                                    <div class="w-12 h-12 text-3xl flex items-center justify-center bg-blue-200 rounded-full mr-3">
-                                        ${player.avatar || '❓'}
-                                    </div>
-                                    <span class="text-lg font-semibold text-gray-800">${player.name || 'Anônimo'}</span>
-                                </div>
-                                <span class="text-2xl font-bold text-green-600">${player.score}</span>
-                            `;
-                            rankingList.querySelector('ul').appendChild(li);
+                    // Real-time listener for ranking updates
+                    onSnapshot(q, (snapshot) => {
+                        rankingLoading.classList.add('hidden');
+                        const rankings = [];
+                        snapshot.forEach(doc => {
+                            rankings.push(doc.data());
                         });
-                    }
-                }, (error) => {
-                    console.error("Error getting real-time ranking updates:", error);
+
+                        // Sort locally if orderBy is not used in query
+                        rankings.sort((a, b) => b.score - a.score);
+
+                        rankingList.querySelector('ul').innerHTML = ''; // Clear before re-populating
+
+                        if (rankings.length === 0) {
+                            rankingList.querySelector('ul').innerHTML = '<li class="text-gray-600 text-center">Nenhuma pontuação registrada ainda.</li>';
+                        } else {
+                            rankings.forEach((player, index) => {
+                                const li = document.createElement('li');
+                                li.classList.add('flex', 'items-center', 'justify-between', 'p-4', 'bg-blue-50', 'rounded-lg', 'shadow-sm');
+                                li.innerHTML = `
+                                    <div class="flex items-center">
+                                        <span class="text-xl font-bold text-blue-700 mr-4">${index + 1}.</span>
+                                        <div class="w-12 h-12 text-3xl flex items-center justify-center bg-blue-200 rounded-full mr-3">
+                                            ${player.avatar || '❓'}
+                                        </div>
+                                        <span class="text-lg font-semibold text-gray-800">${player.name || 'Anônimo'}</span>
+                                    </div>
+                                    <span class="text-2xl font-bold text-green-600">${player.score}</span>
+                                `;
+                                rankingList.querySelector('ul').appendChild(li);
+                            });
+                        }
+                    }, (error) => {
+                        console.error("Error getting real-time ranking updates:", error);
+                        rankingLoading.textContent = "Erro ao carregar o ranking.";
+                        showMessage("Erro de Ranking", "Não foi possível carregar o ranking global. Tente novamente.");
+                    });
+                } catch (e) {
+                    console.error("Error setting up ranking listener:", e);
                     rankingLoading.textContent = "Erro ao carregar o ranking.";
                     showMessage("Erro de Ranking", "Não foi possível carregar o ranking global. Tente novamente.");
-                });
-            } catch (e) {
-                console.error("Error setting up ranking listener:", e);
-                rankingLoading.textContent = "Erro ao carregar o ranking.";
-                showMessage("Erro de Ranking", "Não foi possível carregar o ranking global. Tente novamente.");
-            }
+                }
+            });
         }
 
         // --- Event Listeners ---
@@ -752,6 +796,11 @@
             } else {
                 showScreen('profileScreen');
             }
+        });
+
+        // Enable saveProfileButton once auth is ready
+        authReadyPromise.then(() => {
+            saveProfileButton.disabled = false;
         });
 
         rankingButtonStart.addEventListener('click', loadRanking);

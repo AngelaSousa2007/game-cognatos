@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desvende o Falso Cognato!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 700px; /* Minimum height for better appearance */
+        }
+        /* Replaced @apply with direct Tailwind classes for .button-primary */
+        .button-primary {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #3b82f6; /* blue-500 */
+            --tw-gradient-to: #4f46e5; /* indigo-600 */
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+            color: #ffffff;
+            font-weight: 700;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+            transform: scale(1);
+        }
+        .button-primary:hover {
+            --tw-gradient-from: #2563eb; /* blue-600 */
+            --tw-gradient-to: #4338ca; /* indigo-700 */
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+            transform: scale(1.05);
+        }
+        /* Replaced @apply with direct Tailwind classes for .button-secondary */
+        .button-secondary {
+            background-color: #e5e7eb; /* gray-200 */
+            color: #1f2937; /* gray-800 */
+            font-weight: 600;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+            transform: scale(1);
+        }
+        .button-secondary:hover {
+            background-color: #d1d5db; /* gray-300 */
+            transform: scale(1.05);
+        }
+        /* Replaced @apply with direct Tailwind classes for .input-text */
+        .input-text {
+            padding: 0.75rem;
+            border-width: 1px;
+            border-color: #d1d5db; /* gray-300 */
+            border-radius: 0.5rem;
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+        .input-text:focus {
+            outline: 2px solid #60a5fa; /* blue-400 */
+            outline-offset: 2px;
+            --tw-ring-color: #60a5fa;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        }
+        /* Replaced @apply with direct Tailwind classes for .avatar-option */
+        .avatar-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 5rem; /* w-20 */
+            height: 5rem; /* h-20 */
+            background-color: #dbeafe; /* blue-100 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 200ms;
+        }
+        .avatar-option:hover {
+            box-shadow: 0 0 0 2px #3b82f6; /* hover:ring-2 hover:ring-blue-500 */
+        }
+        .avatar-option.selected {
+            box-shadow: 0 0 0 4px #2563eb, 0 0 0 6px #ffffff; /* ring-4 ring-blue-600 ring-offset-2 */
+        }
+        /* Replaced @apply with direct Tailwind classes for .message-box */
+        .message-box {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 50;
+        }
+        /* Replaced @apply with direct Tailwind classes for .message-content */
+        .message-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            text-align: center;
+            max-width: 24rem; /* max-w-sm */
+            width: 100%;
+        }
+        .message-box h3 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700;
+            color: #1f2937; /* gray-800 */
+            margin-bottom: 1rem;
+        }
+        .message-box p {
+            color: #4b5563; /* gray-600 */
+            margin-bottom: 1.5rem;
+        }
+        .message-box button {
+            /* Inherits button-primary styles */
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <!-- Message Box for alerts/confirmations -->
+        <div id="messageBox" class="message-box hidden">
+            <div class="message-content">
+                <h3 id="messageBoxTitle"></h3>
+                <p id="messageBoxMessage"></p>
+                <button id="messageBoxConfirmButton">OK</button>
+            </div>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="flex flex-col items-center justify-center flex-grow p-8 text-center bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+            <h1 class="text-6xl font-extrabold mb-6 animate-pulse">Desvende o Falso Cognato!</h1>
+            <p class="text-2xl mb-8">Teste seus conhecimentos de espanhol e português!</p>
+            <button id="startButton" class="button-primary text-xl px-10 py-4">
+                <i class="fas fa-play mr-3"></i> Começar Jogo
+            </button>
+            <button id="rankingButtonStart" class="button-secondary text-lg mt-4 px-8 py-3 bg-opacity-80">
+                <i class="fas fa-trophy mr-2"></i> Ver Ranking
+            </button>
+        </div>
+
+        <!-- Profile Creation Screen -->
+        <div id="profileScreen" class="hidden flex flex-col items-center justify-center flex-grow p-8 bg-white">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8">Criar/Editar Perfil</h2>
+            <div class="mb-6 w-full max-w-md">
+                <label for="playerName" class="block text-lg font-semibold text-gray-700 mb-2">Seu Nome:</label>
+                <input type="text" id="playerName" class="input-text w-full text-center text-xl" placeholder="Ex: Maria Falsa" maxlength="20">
+            </div>
+            <div class="mb-8 w-full max-w-md">
+                <label class="block text-lg font-semibold text-gray-700 mb-4 text-center">Escolha seu Avatar:</label>
+                <div id="avatarSelection" class="flex justify-center gap-4 flex-wrap">
+                    <!-- Avatars will be dynamically loaded here -->
+                </div>
+            </div>
+            <button id="saveProfileButton" class="button-primary text-lg">
+                <i class="fas fa-user-check mr-2"></i> Salvar Perfil e Jogar
+            </button>
+            <button id="backToStartButton" class="button-secondary text-base mt-4">
+                <i class="fas fa-arrow-left mr-2"></i> Voltar
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="hidden flex flex-col items-center justify-between flex-grow p-8 bg-gray-50">
+            <div class="w-full flex justify-between items-center mb-6">
+                <div class="flex items-center text-gray-700 text-xl font-semibold">
+                    <i class="fas fa-star mr-2 text-yellow-500"></i> Pontuação: <span id="scoreDisplay" class="ml-2 text-blue-600">0</span>
+                </div>
+                <div class="flex items-center text-gray-700 text-xl font-semibold">
+                    <i class="fas fa-stopwatch mr-2 text-red-500"></i> Tempo: <span id="timerDisplay" class="ml-2 text-red-600">15</span>s
+                </div>
+                <div class="flex items-center text-gray-700 text-xl font-semibold">
+                    <i class="fas fa-hashtag mr-2 text-green-500"></i> Questão: <span id="questionCountDisplay" class="ml-2 text-green-600">1/10</span>
+                </div>
+            </div>
+            <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl text-center mb-8 transform transition-all duration-300">
+                <p class="text-3xl font-bold text-gray-900 mb-6" id="questionText"></p>
+            </div>
+            <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-xl">
+                <!-- Options will be dynamically loaded here -->
+            </div>
+            <button id="nextQuestionButton" class="button-primary mt-8 hidden">
+                <i class="fas fa-arrow-right mr-2"></i> Próxima Questão
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="hidden flex flex-col items-center justify-center flex-grow p-8 bg-gradient-to-br from-green-400 to-blue-500 text-white text-center">
+            <h2 class="text-5xl font-extrabold mb-6">Jogo Finalizado!</h2>
+            <p class="text-3xl mb-8">Sua Pontuação Final: <span id="finalScoreDisplay" class="font-bold text-yellow-300">0</span></p>
+            <div id="playerProfileSummary" class="flex flex-col items-center mb-8 p-4 bg-white bg-opacity-20 rounded-lg">
+                <div id="playerAvatarResult" class="w-24 h-24 text-6xl flex items-center justify-center bg-blue-100 rounded-full mb-3 shadow-md"></div>
+                <p class="text-xl font-semibold"><span id="playerNameResult"></span></p>
+                <p class="text-lg text-gray-100"><span id="playerUserIdDisplay"></span></p>
+            </div>
+            <button id="playAgainButton" class="button-primary text-xl px-8 py-4">
+                <i class="fas fa-redo-alt mr-3"></i> Jogar Novamente
+            </button>
+            <button id="viewRankingButton" class="button-secondary text-lg mt-4 px-8 py-3 bg-opacity-80">
+                <i class="fas fa-trophy mr-2"></i> Ver Ranking Global
+            </button>
+        </div>
+
+        <!-- Ranking Screen -->
+        <div id="rankingScreen" class="hidden flex flex-col flex-grow p-8 bg-gray-100">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 text-center">Ranking Global</h2>
+            <div id="rankingList" class="flex-grow overflow-y-auto w-full max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+                <p class="text-gray-600 text-center" id="rankingLoading">Carregando ranking...</p>
+                <ul class="space-y-4">
+                    <!-- Ranking items will be dynamically loaded here -->
+                </ul>
+            </div>
+            <button id="backToMenuButton" class="button-primary mt-8 mx-auto text-lg">
+                <i class="fas fa-bars mr-2"></i> Voltar ao Menu Principal
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase CDN imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, collection, query, limit, orderBy, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Global Variables (Provided by Canvas Environment) ---
+        // __app_id: The current app ID provided in the canvas environment.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'false-cognate-quiz-default';
+        // __firebase_config: Firebase configuration provided in the canvas environment.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // __initial_auth_token: Firebase custom auth token.
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
+
+        // --- Firebase Initialization ---
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthenticated = false; // Flag to track if auth is ready
+
+        // Initialize Firebase and set up authentication listener
+        const initFirebase = async () => {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthenticated = true;
+                        console.log("Firebase Auth Ready. User ID:", userId);
+                        // If user is authenticated, check for existing profile
+                        await loadProfile();
+                    } else {
+                        // Sign in anonymously if no initial auth token or user is not signed in
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+                        } catch (error) {
+                            console.error("Error during anonymous sign-in or custom token sign-in:", error);
+                            showMessage("Erro de Autenticação", "Não foi possível autenticar o usuário. Tente novamente mais tarde.");
+                        }
+                    }
+                    // Once authenticated (or anonymously signed in), load ranking if on ranking screen
+                    if (currentPage === 'ranking') {
+                        loadRanking();
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showMessage("Erro de Inicialização", "Não foi possível carregar o jogo. Verifique sua conexão ou tente novamente.");
+            }
+        };
+
+        // --- Game Elements ---
+        const startScreen = document.getElementById('startScreen');
+        const profileScreen = document.getElementById('profileScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultsScreen = document.getElementById('resultsScreen');
+        const rankingScreen = document.getElementById('rankingScreen');
+
+        const startButton = document.getElementById('startButton');
+        const rankingButtonStart = document.getElementById('rankingButtonStart');
+        const playerNameInput = document.getElementById('playerName');
+        const avatarSelection = document.getElementById('avatarSelection');
+        const saveProfileButton = document.getElementById('saveProfileButton');
+        const backToStartButton = document.getElementById('backToStartButton');
+
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        // FIX: Removed the erroneous `document =` assignment here.
+        const scoreDisplay = document.getElementById('scoreDisplay'); 
+        const timerDisplay = document.getElementById('timerDisplay');
+        const questionCountDisplay = document.getElementById('questionCountDisplay');
+        const nextQuestionButton = document.getElementById('nextQuestionButton');
+
+        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+        const playerProfileSummary = document.getElementById('playerProfileSummary');
+        const playerAvatarResult = document.getElementById('playerAvatarResult');
+        const playerNameResult = document.getElementById('playerNameResult');
+        const playerUserIdDisplay = document.getElementById('playerUserIdDisplay');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const viewRankingButton = document.getElementById('viewRankingButton');
+
+        const rankingList = document.getElementById('rankingList');
+        const rankingLoading = document.getElementById('rankingLoading');
+        const backToMenuButton = document.getElementById('backToMenuButton');
+
+        const messageBox = document.getElementById('messageBox');
+        const messageBoxTitle = document.getElementById('messageBoxTitle');
+        const messageBoxMessage = document.getElementById('messageBoxMessage');
+        const messageBoxConfirmButton = document.getElementById('messageBoxConfirmButton');
+
+        // --- Game State Variables ---
+        let currentPage = 'start';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft;
+        const TIME_PER_QUESTION = 15; // seconds
+        const TOTAL_QUESTIONS = 10;
+        let userName = '';
+        let userAvatar = ''; // Stores the emoji or index of the chosen avatar
+        let selectedAvatarElement = null; // Reference to the currently selected avatar DOM element
+
+        // --- Game Data: False Cognates ---
+        const falseCognates = [
+            {
+                question: "Em espanhol, 'apellido' significa:",
+                options: ["Sobrenome", "Apelido", "Chamado", "Sobremesa"],
+                correct: "Sobrenome"
+            },
+            {
+                question: "Em espanhol, 'borrar' significa:",
+                options: ["Apagar", "Borrachar", "Manchar", "Pular"],
+                correct: "Apagar"
+            },
+            {
+                question: "Em espanhol, 'embarazada' significa:",
+                options: ["Grávida", "Envergonhada", "Embarassada", "Com pressa"],
+                correct: "Grávida"
+            },
+            {
+                question: "Em espanhol, 'oficina' significa:",
+                options: ["Escritório", "Oficina", "Loja", "Fábrica"],
+                correct: "Escritório"
+            },
+            {
+                question: "Em espanhol, 'exquisito' significa:",
+                options: ["Delicioso", "Esquisito", "Elegante", "Raro"],
+                correct: "Delicioso"
+            },
+            {
+                question: "Em espanhol, 'cena' significa:",
+                options: ["Jantar", "Cena", "Preço", "Teatro"],
+                correct: "Jantar"
+            },
+            {
+                question: "Em espanhol, 'taza' significa:",
+                options: ["Xícara", "Taça", "Tinta", "Mesa"],
+                correct: "Xícara"
+            },
+            {
+                question: "Em espanhol, 'saco' significa:",
+                options: ["Paletó", "Saco", "Pano", "Roupa"],
+                correct: "Paletó"
+            },
+            {
+                question: "Em espanhol, 'cubiertos' significa:",
+                options: ["Talheres", "Cobertores", "Cobertos", "Guardados"],
+                correct: "Talheres"
+            },
+            {
+                question: "Em espanhol, 'rato' significa:",
+                options: ["Momento", "Rato", "Cedo", "Tarde"],
+                correct: "Momento"
+            },
+            {
+                question: "Em espanhol, 'escoba' significa:",
+                options: ["Vassoura", "Escova", "Escravo", "Escorpião"],
+                correct: "Vassoura"
+            },
+            {
+                question: "Em espanhol, 'sitio' significa:",
+                options: ["Lugar", "Sítio", "Assento", "Local"],
+                correct: "Lugar"
+            },
+            {
+                question: "Em espanhol, 'pulpo' significa:",
+                options: ["Polvo", "Pulga", "Púlpito", "Pulmão"],
+                correct: "Polvo"
+            },
+            {
+                question: "Em espanhol, 'salada' significa:",
+                options: ["Salgada", "Salada", "Salgadinho", "Salão"],
+                correct: "Salgada"
+            },
+            {
+                question: "Em espanhol, 'vaso' significa:",
+                options: ["Copo", "Vaso", "Vazamento", "Vazio"],
+                correct: "Copo"
+            }
+        ];
+
+        // Shuffle the false cognates array to randomize question order
+        const shuffledCognates = [...falseCognates].sort(() => Math.random() - 0.5);
+        const questionsToAsk = shuffledCognates.slice(0, TOTAL_QUESTIONS); // Select only 10 questions
+
+        // --- Avatars (Emojis) ---
+        const avatars = ['😀', '😎', '🤓', '😇', '🚀', '🌟', '🦄', '🐧', '💡', '🏆'];
+
+        // --- Sound Effects ---
+        // Updated placeholder sound URLs to more reliable sources (Mixkit.co)
+        const correctSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2144.mp3');
+        const incorrectSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-fail-achievement-2067.mp3');
+        const timerTickSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-tick-tock-clock-1036.mp3');
+        timerTickSound.volume = 0.5;
+
+        // --- UI Navigation ---
+        function showScreen(screenId) {
+            startScreen.classList.add('hidden');
+            profileScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            rankingScreen.classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+            currentPage = screenId.replace('Screen', ''); // Update current page state
+        }
+
+        function showMessage(title, message, onConfirm = null) {
+            messageBoxTitle.textContent = title;
+            messageBoxMessage.textContent = message;
+            messageBox.classList.remove('hidden');
+
+            // Clear previous listeners
+            messageBoxConfirmButton.onclick = null;
+            messageBoxConfirmButton.onclick = () => {
+                messageBox.classList.add('hidden');
+                if (onConfirm) onConfirm();
+            };
+        }
+
+        // --- Profile Management ---
+        async function loadProfile() {
+            if (!isAuthenticated || !userId) return; // Wait for authentication
+
+            try {
+                const profileDocRef = doc(db, `/artifacts/${appId}/users/${userId}/profiles`, 'myProfile');
+                const docSnap = await getDoc(profileDocRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    userName = data.name;
+                    userAvatar = data.avatar;
+                    playerNameInput.value = userName;
+                    // Select the avatar in the UI
+                    document.querySelectorAll('.avatar-option').forEach(el => {
+                        if (el.dataset.avatar === userAvatar) {
+                            selectAvatar(el);
+                        }
+                    });
+                    console.log("Profile loaded:", data);
+                } else {
+                    console.log("No profile found for this user.");
+                    // No profile, prompt to create
+                }
+            } catch (e) {
+                console.error("Error loading profile:", e);
+                showMessage("Erro", "Não foi possível carregar seu perfil. Tente novamente.");
+            }
+        }
+
+        async function saveProfile() {
+            if (!isAuthenticated || !userId) {
+                showMessage("Erro", "Usuário não autenticado. Tente novamente.");
+                return;
+            }
+
+            userName = playerNameInput.value.trim();
+            if (!userName) {
+                showMessage("Atenção", "Por favor, digite seu nome.");
+                return;
+            }
+            if (!userAvatar) {
+                showMessage("Atenção", "Por favor, escolha um avatar.");
+                return;
+            }
+
+            try {
+                const profileDocRef = doc(db, `/artifacts/${appId}/users/${userId}/profiles`, 'myProfile');
+                await setDoc(profileDocRef, {
+                    name: userName,
+                    avatar: userAvatar,
+                    userId: userId // Store userId in profile for easier lookup if needed
+                });
+                console.log("Profile saved successfully!");
+                showMessage("Sucesso!", "Perfil salvo com sucesso! Clique em OK para jogar.", startQuiz);
+            } catch (e) {
+                console.error("Error saving profile:", e);
+                showMessage("Erro", "Não foi possível salvar seu perfil. Tente novamente.");
+            }
+        }
+
+        function populateAvatars() {
+            avatarSelection.innerHTML = '';
+            avatars.forEach(avatar => {
+                const div = document.createElement('div');
+                div.classList.add('avatar-option');
+                div.dataset.avatar = avatar; // Store the emoji as data attribute
+                div.innerHTML = `<span class="text-5xl">${avatar}</span>`;
+                div.addEventListener('click', () => selectAvatar(div));
+                avatarSelection.appendChild(div);
+            });
+        }
+
+        function selectAvatar(element) {
+            if (selectedAvatarElement) {
+                selectedAvatarElement.classList.remove('selected');
+            }
+            element.classList.add('selected');
+            selectedAvatarElement = element;
+            userAvatar = element.dataset.avatar;
+        }
+
+        // --- Quiz Logic ---
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreDisplay.textContent = score;
+            showScreen('quizScreen');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            // Ensure nextQuestionButton is hidden until an answer is selected
+            nextQuestionButton.classList.add('hidden');
+            optionsContainer.innerHTML = ''; // Clear previous options
+
+            if (currentQuestionIndex >= TOTAL_QUESTIONS) {
+                endGame();
+                return;
+            }
+
+            const currentQuestion = questionsToAsk[currentQuestionIndex];
+            questionText.textContent = currentQuestion.question;
+            questionCountDisplay.textContent = `${currentQuestionIndex + 1}/${TOTAL_QUESTIONS}`;
+
+            // Shuffle options for the current question
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.classList.add('button-secondary', 'py-4', 'px-6', 'text-xl', 'rounded-lg', 'font-semibold', 'text-gray-800', 'hover:bg-blue-100', 'transition', 'duration-200');
+                button.textContent = option;
+                button.addEventListener('click', () => handleAnswerClick(button, option, currentQuestion.correct));
+                optionsContainer.appendChild(button);
+            });
+
+            // Reset and start timer
+            clearInterval(timer);
+            timeLeft = TIME_PER_QUESTION;
+            timerDisplay.textContent = timeLeft;
+            startTimer();
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                if (timeLeft <= 5 && timeLeft > 0) { // Play tick sound in the last 5 seconds
+                    timerTickSound.play();
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    // Time's up, automatically mark as incorrect
+                    handleAnswerClick(null, "time_up", questionsToAsk[currentQuestionIndex].correct);
+                }
+            }, 1000);
+        }
+
+        function handleAnswerClick(clickedButton, selectedOption, correctAnswer) {
+            clearInterval(timer); // Stop the timer
+
+            // Disable all option buttons
+            Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                scoreDisplay.textContent = score;
+                if (clickedButton) clickedButton.classList.add('bg-green-500', 'text-white');
+                correctSound.play();
+            } else {
+                if (clickedButton) clickedButton.classList.add('bg-red-500', 'text-white');
+                // Highlight the correct answer
+                Array.from(optionsContainer.children).forEach(btn => {
+                    if (btn.textContent === correctAnswer) {
+                        btn.classList.add('bg-green-500', 'text-white', 'border-2', 'border-green-700');
+                    }
+                });
+                incorrectSound.play();
+            }
+
+            nextQuestionButton.classList.remove('hidden'); // Show next question button
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            showScreen('resultsScreen');
+            finalScoreDisplay.textContent = score;
+            playerNameResult.textContent = userName;
+            playerAvatarResult.textContent = userAvatar;
+            playerUserIdDisplay.textContent = `ID: ${userId}`; // Show user ID for multi-player context
+            saveScore(score);
+        }
+
+        // --- Ranking System ---
+        async function saveScore(finalScore) {
+            if (!isAuthenticated || !userId) {
+                console.warn("User not authenticated, score not saved.");
+                return;
+            }
+
+            try {
+                // Public data collection for ranking
+                const rankingCollectionRef = collection(db, `/artifacts/${appId}/public/data/ranking`);
+                await addDoc(rankingCollectionRef, {
+                    name: userName,
+                    avatar: userAvatar,
+                    score: finalScore,
+                    userId: userId, // Store userId to potentially prevent multiple entries by same user, or identify them
+                    timestamp: new Date()
+                });
+                console.log("Score saved successfully!");
+            } catch (e) {
+                console.error("Error saving score:", e);
+                showMessage("Erro ao Salvar Pontuação", "Não foi possível salvar sua pontuação no ranking.");
+            }
+        }
+
+        function loadRanking() {
+            showScreen('rankingScreen');
+            rankingLoading.classList.remove('hidden');
+            rankingList.querySelector('ul').innerHTML = ''; // Clear previous list
+
+            if (!isAuthenticated || !db) {
+                console.warn("Firebase not ready for ranking data.");
+                rankingLoading.textContent = "Aguardando autenticação para carregar o ranking...";
+                return;
+            }
+
+            try {
+                const rankingCollectionRef = collection(db, `/artifacts/${appId}/public/data/ranking`);
+                // Query for top scores, ordering by score descending, limit to top 10
+                const q = query(rankingCollectionRef, limit(10)); // Removed orderBy as per instructions
+
+                // Real-time listener for ranking updates
+                onSnapshot(q, (snapshot) => {
+                    rankingLoading.classList.add('hidden');
+                    const rankings = [];
+                    snapshot.forEach(doc => {
+                        rankings.push(doc.data());
+                    });
+
+                    // Sort locally if orderBy is not used in query
+                    rankings.sort((a, b) => b.score - a.score);
+
+                    rankingList.querySelector('ul').innerHTML = ''; // Clear before re-populating
+
+                    if (rankings.length === 0) {
+                        rankingList.querySelector('ul').innerHTML = '<li class="text-gray-600 text-center">Nenhuma pontuação registrada ainda.</li>';
+                    } else {
+                        rankings.forEach((player, index) => {
+                            const li = document.createElement('li');
+                            li.classList.add('flex', 'items-center', 'justify-between', 'p-4', 'bg-blue-50', 'rounded-lg', 'shadow-sm');
+                            li.innerHTML = `
+                                <div class="flex items-center">
+                                    <span class="text-xl font-bold text-blue-700 mr-4">${index + 1}.</span>
+                                    <div class="w-12 h-12 text-3xl flex items-center justify-center bg-blue-200 rounded-full mr-3">
+                                        ${player.avatar || '❓'}
+                                    </div>
+                                    <span class="text-lg font-semibold text-gray-800">${player.name || 'Anônimo'}</span>
+                                </div>
+                                <span class="text-2xl font-bold text-green-600">${player.score}</span>
+                            `;
+                            rankingList.querySelector('ul').appendChild(li);
+                        });
+                    }
+                }, (error) => {
+                    console.error("Error getting real-time ranking updates:", error);
+                    rankingLoading.textContent = "Erro ao carregar o ranking.";
+                    showMessage("Erro de Ranking", "Não foi possível carregar o ranking global. Tente novamente.");
+                });
+            } catch (e) {
+                console.error("Error setting up ranking listener:", e);
+                rankingLoading.textContent = "Erro ao carregar o ranking.";
+                showMessage("Erro de Ranking", "Não foi possível carregar o ranking global. Tente novamente.");
+            }
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            // Check if profile exists, if not, go to profile screen
+            if (userName) {
+                startQuiz();
+            } else {
+                showScreen('profileScreen');
+            }
+        });
+
+        rankingButtonStart.addEventListener('click', loadRanking);
+
+        saveProfileButton.addEventListener('click', saveProfile);
+
+        backToStartButton.addEventListener('click', () => showScreen('startScreen'));
+
+        nextQuestionButton.addEventListener('click', nextQuestion);
+
+        playAgainButton.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            score = 0;
+            // Re-shuffle for a new game
+            shuffledCognates.sort(() => Math.random() - 0.5);
+            questionsToAsk.splice(0, questionsToAsk.length, ...shuffledCognates.slice(0, TOTAL_QUESTIONS));
+            startQuiz();
+        });
+
+        viewRankingButton.addEventListener('click', loadRanking);
+
+        backToMenuButton.addEventListener('click', () => showScreen('startScreen'));
+
+        // Initial setup on window load
+        window.onload = function() {
+            initFirebase();
+            populateAvatars();
+            showScreen('startScreen');
+        };
+    </script>
+</body>
+</html>
